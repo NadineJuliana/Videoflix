@@ -14,6 +14,22 @@ class RegistrationSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     confirmed_password = serializers.CharField(write_only=True)
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                "Unable to register with this email."
+            )
+
+        return value
+
+    def validate(self, attrs):
+        if attrs["password"] != attrs["confirmed_password"]:
+            raise serializers.ValidationError(
+                {"password": "Passwords do not match."}
+            )
+
+        return attrs
+
     def create(self, validated_data):
         email = validated_data["email"]
         password = validated_data["password"]
