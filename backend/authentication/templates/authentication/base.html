@@ -9,11 +9,13 @@
         Videoflix
       {% endblock %}
     </title>
-    <link rel="stylesheet" href="{% static 'style/email.css' %}" />
+    {% comment %} <link rel="stylesheet" href="{% static 'authentication/style/email.css' %}" /> {% endcomment %}
   </head>
   <body>
     <main>
-      {% include 'authentication/activation_email.html' %}
+      {% block content %}
+
+      {% endblock %}
     </main>
   </body>
 </html>

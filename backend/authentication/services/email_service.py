@@ -14,7 +14,9 @@ def send_activation_email(user, token):
 
     html_message = render_to_string(
         "authentication/activation_email.html",
-        {"activation_link": activation_link, },
+        {"activation_link": activation_link,
+         "username": user.username,
+         },
 
     )
 
