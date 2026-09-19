@@ -145,3 +145,21 @@ class RegisterHappyPathTest(APITestCase):
             expected_link,
             mail.outbox[0].body,
         )
+
+    def test_activation_email_contains_html_content(self):
+        data = {
+            "email": "user@example.com",
+            "password": "securepassword",
+            "confirmed_password": "securepassword",
+        }
+
+        self.client.post(
+            "/api/register/",
+            data,
+            format="json",
+        )
+
+        self.assertEqual(
+            len(mail.outbox[0].alternatives),
+            1,
+        )
