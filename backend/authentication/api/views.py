@@ -99,10 +99,39 @@ class LoginView(APIView):
             str(refresh.access_token),
             httponly=True,
         )
+
         response.set_cookie(
             "refresh_token",
             str(refresh),
             httponly=True,
         )
+
+        return response
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+
+        if not refresh_token:
+            return Response(
+                {"detail": "Refresh token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        RefreshToken(refresh_token).blacklist()
+
+        response = Response(
+            {
+                "detail": (
+                    "Logout successful! All tokens will be deleted. "
+                    "Refresh token is now invalid."
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
+
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
 
         return response
