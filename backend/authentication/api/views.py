@@ -3,15 +3,18 @@ API views for user authentication.
 """
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import DjangoUnicodeDecodeError, force_str
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from authentication.api.serializers import RegistrationSerializer
+from authentication.api.serializers import (
+    LoginSerializer,
+    RegistrationSerializer,
+)
 from authentication.services.email_service import send_activation_email
 
 User = get_user_model()
@@ -70,3 +73,36 @@ class ActivateView(APIView):
             {"message": "Account activation failed."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class LoginView(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.validated_data["user"]
+        refresh = RefreshToken.for_user(user)
+
+        response = Response(
+            {
+                "detail": "Login successful",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+        response.set_cookie(
+            "access_token",
+            str(refresh.access_token),
+            httponly=True,
+        )
+        response.set_cookie(
+            "refresh_token",
+            str(refresh),
+            httponly=True,
+        )
+
+        return response
