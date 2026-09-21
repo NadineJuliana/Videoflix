@@ -1,0 +1,19 @@
+{% extends "authentication/base.html" %}
+{% load static %}
+
+{% block title %}Activate your Account{% endblock%}
+
+{% block content %}
+  <img class="logo" src="{% static 'authentication/images/Logo.svg' %}" alt="Videoflix Logo" />
+  <p>Dear {{ username }},</p>
+  <p>
+    Thank you for registering with <a class="homepage" href="">Videoflix</a>.
+  </p>
+  <p>To complete your registration and verify your email address, please click the link below:</p>
+
+  <a class="activation" href="{{ activation_link }}">Activate account</a>
+
+  <p>If you did not create an account with us, please disregard this email</p>
+  <p>Best regards,</p>
+  <p>Your Videoflix Team</p>
+{% endblock %}
