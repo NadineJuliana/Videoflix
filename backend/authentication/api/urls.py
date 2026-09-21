@@ -4,7 +4,12 @@ URL configuration for authentication API endpoints.
 
 from django.urls import path
 
-from authentication.api.views import ActivateView, LoginView, RegisterView
+from authentication.api.views import (
+    ActivateView,
+    LoginView,
+    LogoutView,
+    RegisterView,
+)
 
 
 urlpatterns = [
@@ -15,4 +20,5 @@ urlpatterns = [
         name="activate",
     ),
     path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
 ]
