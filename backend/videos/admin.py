@@ -1,3 +1,17 @@
+"""
+Admin configuration for videos.
+"""
+
 from django.contrib import admin
 
-# Register your models here.
+from videos.models import Video
+
+
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "title",
+        "category",
+        "created_at",
+    )
