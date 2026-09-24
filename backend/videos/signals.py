@@ -11,7 +11,7 @@ from videos.tasks import process_video_task
 
 
 @receiver(post_save, sender=Video)
-def enqueue_video_processing(_sender, instance, created, **_kwargs):
+def enqueue_video_processing(sender, instance, created, **_kwargs):  # pylint: disable=unused-argument
     if not created:
         return
 
