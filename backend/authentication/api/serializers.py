@@ -10,7 +10,7 @@ from rest_framework import serializers
 User = get_user_model()
 
 
-class RegistrationSerializer(serializers.Serializer):
+class RegistrationSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     confirmed_password = serializers.CharField(write_only=True)
@@ -43,7 +43,7 @@ class RegistrationSerializer(serializers.Serializer):
         )
 
 
-class LoginSerializer(serializers.Serializer):
+class LoginSerializer(serializers.Serializer):  # pylint: disable=abstract-method
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
@@ -59,4 +59,21 @@ class LoginSerializer(serializers.Serializer):
             )
 
         attrs["user"] = user
+        return attrs
+
+
+class PasswordResetSerializer(serializers.Serializer):  # pylint: disable=abstract-method
+    email = serializers.EmailField()
+
+
+class PasswordConfirmSerializer(serializers.Serializer):  # pylint: disable=abstract-method
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError(
+                {"new_password": "Passwords do not match."}
+            )
+
         return attrs

@@ -14,9 +14,14 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 from authentication.api.serializers import (
     LoginSerializer,
+    PasswordConfirmSerializer,
+    PasswordResetSerializer,
     RegistrationSerializer,
 )
-from authentication.services.email_service import send_activation_email
+from authentication.services.email_service import (
+    send_activation_email,
+    send_password_reset_email,
+)
 
 User = get_user_model()
 
@@ -42,7 +47,7 @@ class RegisterView(APIView):
 
 
 class ActivateView(APIView):
-    def get(self, request, uidb64, token):
+    def get(self, _request, uidb64, token):
         user = self.get_user(uidb64)
 
         if not user or not default_token_generator.check_token(user, token):
@@ -173,3 +178,65 @@ class TokenRefreshView(APIView):
         )
 
         return response
+
+
+class PasswordResetView(APIView):
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            send_password_reset_email(user)
+
+        return Response(
+            {
+                "detail": (
+                    "An email has been sent to reset your password."
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordConfirmView(APIView):
+    def post(self, request, uidb64, token):
+        serializer = PasswordConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = self.get_user(uidb64)
+
+        if not user or not default_token_generator.check_token(user, token):
+            return Response(
+                {"detail": "Invalid or expired token."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(
+            serializer.validated_data["new_password"]
+        )
+        user.save()
+
+        return Response(
+            {
+                "detail": (
+                    "Your Password has been successfully reset."
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def get_user(self, uidb64):
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            return User.objects.get(pk=user_id)
+        except (
+            ValueError,
+            TypeError,
+            OverflowError,
+            DjangoUnicodeDecodeError,
+            User.DoesNotExist,
+        ):
+            return None
