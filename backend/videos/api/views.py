@@ -52,3 +52,26 @@ class HLSManifestView(APIView):
             open(manifest_path, "rb"),
             content_type="application/vnd.apple.mpegurl",
         )
+
+
+class HLSSegmentView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, movie_id, resolution, segment):
+        video = get_object_or_404(Video, pk=movie_id)
+        segment_path = (
+            Path(settings.MEDIA_ROOT)
+            / "hls"
+            / str(video.id)
+            / resolution
+            / segment
+        )
+
+        if not segment_path.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        return FileResponse(
+            open(segment_path, "rb"),
+            content_type="video/MP2T",
+        )
