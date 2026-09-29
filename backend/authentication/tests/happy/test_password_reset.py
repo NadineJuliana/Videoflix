@@ -64,7 +64,7 @@ class PasswordResetHappyPathTest(APITestCase):
         self.assertEqual(mail.outbox[0].to, [self.user.email])
 
     def test_password_reset_email_contains_reset_link(self):
-        """Include the password confirmation URL in the reset email."""
+        """Include the frontend password reset URL in the reset email."""
 
         self.client.post(
             "/api/password_reset/",
@@ -74,7 +74,10 @@ class PasswordResetHappyPathTest(APITestCase):
         uid = urlsafe_base64_encode(force_bytes(self.user.pk))
 
         self.assertIn(
-            f"/api/password_confirm/{uid}/",
+            (
+                "http://127.0.0.1:5500/pages/auth/confirm_password.html"
+                f"?uid={uid}&token="
+            ),
             mail.outbox[0].body,
         )
 
