@@ -13,7 +13,10 @@ def get_activation_link(user, token):
     """Create the activation link for a user."""
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    return f"/api/activate/{uid}/{token}/"
+    return (
+        "http://127.0.0.1:5500/pages/auth/activate.html"
+        f"?uid={uid}&token={token}"
+    )
 
 
 def send_activation_email(user, token):
@@ -43,7 +46,10 @@ def get_password_reset_link(user):
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
-    return f"/api/password_confirm/{uid}/{token}/"
+    return (
+        "http://127.0.0.1:5500/pages/auth/confirm_password.html"
+        f"?uid={uid}&token={token}"
+    )
 
 
 def send_password_reset_email(user):

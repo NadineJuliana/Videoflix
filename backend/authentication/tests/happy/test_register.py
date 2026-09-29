@@ -91,7 +91,7 @@ class RegisterHappyPathTest(APITestCase):
         self.assertEqual(mail.outbox[0].to, [self.data["email"]])
 
     def test_activation_email_contains_activation_link(self):
-        """Include the account activation URL in the email."""
+        """Include the frontend account activation URL in the email."""
 
         response = self.client.post(
             "/api/register/",
@@ -103,7 +103,10 @@ class RegisterHappyPathTest(APITestCase):
         token = response.data["token"]
 
         self.assertIn(
-            f"/api/activate/{uid}/{token}/",
+            (
+                "http://127.0.0.1:5500/pages/auth/activate.html"
+                f"?uid={uid}&token={token}"
+            ),
             mail.outbox[0].body,
         )
 
