@@ -14,28 +14,33 @@ User = get_user_model()
 
 
 class PasswordConfirmUnhappyPathTest(APITestCase):
+    """Test failed password confirmation attempts."""
+
     def setUp(self):
+        """Create a user with valid password reset credentials."""
+
         self.user = User.objects.create_user(
             username="user@example.com",
             email="user@example.com",
             password="securepassword",
             is_active=True,
         )
-
-        self.uid = urlsafe_base64_encode(
-            force_bytes(self.user.pk)
-        )
-        self.token = default_token_generator.make_token(
-            self.user
-        )
+        self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        self.token = default_token_generator.make_token(self.user)
+        self.data = {
+            "new_password": "newsecurepassword",
+            "confirm_password": "newsecurepassword",
+        }
 
     def test_password_confirm_with_mismatching_passwords_returns_status_400(self):
+        """Reject password confirmation when passwords do not match."""
+
+        data = self.data.copy()
+        data["confirm_password"] = "differentpassword"
+
         response = self.client.post(
             f"/api/password_confirm/{self.uid}/{self.token}/",
-            {
-                "new_password": "newsecurepassword",
-                "confirm_password": "differentpassword",
-            },
+            data,
             format="json",
         )
 
@@ -45,12 +50,11 @@ class PasswordConfirmUnhappyPathTest(APITestCase):
         )
 
     def test_password_confirm_with_invalid_token_returns_status_400(self):
+        """Reject password confirmation with an invalid token."""
+
         response = self.client.post(
             f"/api/password_confirm/{self.uid}/invalid-token/",
-            {
-                "new_password": "newsecurepassword",
-                "confirm_password": "newsecurepassword",
-            },
+            self.data,
             format="json",
         )
 
@@ -60,12 +64,11 @@ class PasswordConfirmUnhappyPathTest(APITestCase):
         )
 
     def test_password_confirm_with_invalid_uid_returns_status_400(self):
+        """Reject password confirmation with an invalid UID."""
+
         response = self.client.post(
             f"/api/password_confirm/invalid-uid/{self.token}/",
-            {
-                "new_password": "newsecurepassword",
-                "confirm_password": "newsecurepassword",
-            },
+            self.data,
             format="json",
         )
 

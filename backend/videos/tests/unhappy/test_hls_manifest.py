@@ -5,23 +5,27 @@ Unhappy path tests for the HLS manifest endpoint.
 import tempfile
 from unittest.mock import patch
 
-from django.test import override_settings
-
-from videos.models import Video
-from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test import TestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from videos.models import Video
 
 
 class HLSManifestUnauthenticatedTests(TestCase):
+    """Test unauthenticated access to HLS manifests."""
+
     def setUp(self):
+        """Create an unauthenticated API client."""
+
         self.client = APIClient()
         self.url = "/api/video/1/480p/index.m3u8"
 
     def test_hls_manifest_requires_authentication(self):
+        """Return HTTP 401 without authentication."""
+
         response = self.client.get(self.url)
 
         self.assertEqual(
@@ -31,20 +35,25 @@ class HLSManifestUnauthenticatedTests(TestCase):
 
 
 class HLSManifestNotFoundTests(TestCase):
+    """Test missing HLS manifests and videos."""
+
     def setUp(self):
+        """Create and authenticate a user."""
+
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(
+        user = get_user_model().objects.create_user(
             username="test@example.com",
             email="test@example.com",
             password="testpassword123",
         )
-
-        refresh = RefreshToken.for_user(self.user)
+        refresh = RefreshToken.for_user(user)
         self.client.cookies["access_token"] = str(
             refresh.access_token
         )
 
     def test_hls_manifest_returns_404_for_missing_video(self):
+        """Return HTTP 404 when the requested video does not exist."""
+
         response = self.client.get(
             "/api/video/999/480p/index.m3u8"
         )
@@ -55,6 +64,8 @@ class HLSManifestNotFoundTests(TestCase):
         )
 
     def test_hls_manifest_returns_404_for_missing_manifest(self):
+        """Return HTTP 404 when the manifest file does not exist."""
+
         with tempfile.TemporaryDirectory() as media_root:
             with override_settings(MEDIA_ROOT=media_root):
                 with patch("videos.signals.django_rq.get_queue"):

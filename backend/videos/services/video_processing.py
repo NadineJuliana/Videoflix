@@ -9,6 +9,8 @@ HLS_RESOLUTIONS = (480, 720, 1080)
 
 
 def convert_to_hls(source_path, output_dir, height):
+    """Convert a video into HLS format for the given resolution."""
+
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -29,6 +31,8 @@ def convert_to_hls(source_path, output_dir, height):
 
 
 def process_video(source_path, hls_dir, thumbnail_path):
+    """Generate a thumbnail and all required HLS resolutions."""
+
     generate_thumbnail(source_path, thumbnail_path)
 
     for height in HLS_RESOLUTIONS:
@@ -37,6 +41,8 @@ def process_video(source_path, hls_dir, thumbnail_path):
 
 
 def generate_thumbnail(source_path, output_path):
+    """Generate a thumbnail from the first second of a video."""
+
     thumbnail_path = Path(output_path)
     thumbnail_path.parent.mkdir(parents=True, exist_ok=True)
 

@@ -12,7 +12,11 @@ User = get_user_model()
 
 
 class TokenRefreshHappyPathTest(APITestCase):
+    """Test successful access token refresh."""
+
     def setUp(self):
+        """Create a user with a valid refresh token cookie."""
+
         self.user = User.objects.create_user(
             username="user@example.com",
             email="user@example.com",
@@ -23,6 +27,8 @@ class TokenRefreshHappyPathTest(APITestCase):
         self.client.cookies["refresh_token"] = str(self.refresh)
 
     def test_token_refresh_returns_status_200(self):
+        """Return HTTP 200 for a valid refresh token."""
+
         response = self.client.post(
             "/api/token/refresh/",
             format="json",
@@ -34,6 +40,8 @@ class TokenRefreshHappyPathTest(APITestCase):
         )
 
     def test_token_refresh_returns_new_access_token(self):
+        """Return a new access token."""
+
         response = self.client.post(
             "/api/token/refresh/",
             format="json",
@@ -52,6 +60,8 @@ class TokenRefreshHappyPathTest(APITestCase):
         )
 
     def test_token_refresh_sets_access_token_cookie(self):
+        """Store the new access token in an HTTP-only cookie."""
+
         response = self.client.post(
             "/api/token/refresh/",
             format="json",

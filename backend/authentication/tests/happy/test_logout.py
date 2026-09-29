@@ -13,7 +13,11 @@ User = get_user_model()
 
 
 class LogoutHappyPathTest(APITestCase):
+    """Test successful user logout."""
+
     def setUp(self):
+        """Create an authenticated user with valid JWT cookies."""
+
         self.user = User.objects.create_user(
             username="user@example.com",
             email="user@example.com",
@@ -25,6 +29,8 @@ class LogoutHappyPathTest(APITestCase):
         self.client.cookies["refresh_token"] = str(self.refresh)
 
     def test_logout_returns_status_200(self):
+        """Return HTTP 200 after successful logout."""
+
         response = self.client.post(
             "/api/logout/",
             format="json",
@@ -36,6 +42,8 @@ class LogoutHappyPathTest(APITestCase):
         )
 
     def test_logout_returns_success_message(self):
+        """Return the expected message after successful logout."""
+
         response = self.client.post(
             "/api/logout/",
             format="json",
@@ -52,6 +60,8 @@ class LogoutHappyPathTest(APITestCase):
         )
 
     def test_logout_deletes_token_cookies(self):
+        """Delete access and refresh token cookies."""
+
         response = self.client.post(
             "/api/logout/",
             format="json",
@@ -67,6 +77,8 @@ class LogoutHappyPathTest(APITestCase):
         )
 
     def test_logout_blacklists_refresh_token(self):
+        """Blacklist the refresh token after logout."""
+
         self.client.post(
             "/api/logout/",
             format="json",

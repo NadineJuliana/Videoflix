@@ -14,46 +14,40 @@ User = get_user_model()
 
 
 class PasswordConfirmHappyPathTest(APITestCase):
+    """Test successful password confirmation."""
+
     def setUp(self):
+        """Create a user with valid password reset credentials."""
+
         self.user = User.objects.create_user(
             username="user@example.com",
             email="user@example.com",
             password="securepassword",
             is_active=True,
         )
-
-        self.uid = urlsafe_base64_encode(
-            force_bytes(self.user.pk)
-        )
-        self.token = default_token_generator.make_token(
-            self.user
-        )
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        self.url = f"/api/password_confirm/{uid}/{token}/"
+        self.data = {
+            "new_password": "newsecurepassword",
+            "confirm_password": "newsecurepassword",
+        }
 
     def test_password_confirm_returns_status_200(self):
+        """Return HTTP 200 for a valid password confirmation."""
+
         response = self.client.post(
-            f"/api/password_confirm/{self.uid}/{self.token}/",
-            {
-                "new_password": "newsecurepassword",
-                "confirm_password": "newsecurepassword",
-            },
+            self.url,
+            self.data,
             format="json",
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_password_confirm_updates_password(self):
-        self.client.post(
-            f"/api/password_confirm/{self.uid}/{self.token}/",
-            {
-                "new_password": "newsecurepassword",
-                "confirm_password": "newsecurepassword",
-            },
-            format="json",
-        )
+        """Update the user's password."""
 
+        self.client.post(self.url, self.data, format="json")
         self.user.refresh_from_db()
 
         self.assertTrue(
@@ -61,12 +55,11 @@ class PasswordConfirmHappyPathTest(APITestCase):
         )
 
     def test_password_confirm_returns_success_message(self):
+        """Return the expected message after resetting the password."""
+
         response = self.client.post(
-            f"/api/password_confirm/{self.uid}/{self.token}/",
-            {
-                "new_password": "newsecurepassword",
-                "confirm_password": "newsecurepassword",
-            },
+            self.url,
+            self.data,
             format="json",
         )
 

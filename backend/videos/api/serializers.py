@@ -8,9 +8,13 @@ from videos.models import Video
 
 
 class VideoSerializer(serializers.ModelSerializer):
+    """Serialize video metadata for the video dashboard."""
+
     thumbnail_url = serializers.SerializerMethodField()
 
     class Meta:
+        """Configure serialized fields for videos."""
+
         model = Video
         fields = (
             "id",
@@ -22,6 +26,8 @@ class VideoSerializer(serializers.ModelSerializer):
         )
 
     def get_thumbnail_url(self, obj):
+        """Return the absolute thumbnail URL when available."""
+
         request = self.context.get("request")
 
         if not obj.thumbnail:

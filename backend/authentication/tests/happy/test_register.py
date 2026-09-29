@@ -1,102 +1,81 @@
+"""
+Happy path tests for user registration.
+"""
+
 from django.contrib.auth import get_user_model
-from rest_framework import status
-from rest_framework.test import APITestCase
 from django.core import mail
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from rest_framework import status
+from rest_framework.test import APITestCase
 
 
 User = get_user_model()
 
 
 class RegisterHappyPathTest(APITestCase):
-    def test_register_user_successfully(self):
-        data = {
+    """Test successful user registration."""
+
+    def setUp(self):
+        """Prepare valid registration data."""
+
+        self.data = {
             "email": "user@example.com",
             "password": "securepassword",
             "confirmed_password": "securepassword",
         }
+
+    def test_register_user_successfully(self):
+        """Return HTTP 201 for valid registration data."""
 
         response = self.client.post(
             "/api/register/",
-            data,
+            self.data,
             format="json",
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED,
-        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_register_creates_user(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword",
-        }
+        """Create a user with the submitted email address."""
 
-        self.client.post(
-            "/api/register/",
-            data,
-            format="json",
-        )
+        self.client.post("/api/register/", self.data, format="json")
 
         self.assertTrue(
-            User.objects.filter(
-                email="user@example.com",
+            User.objects.filter(  # pylint: disable=no-member
+                email=self.data["email"]
             ).exists()
         )
 
     def test_registered_user_is_inactive(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword",
-        }
+        """Create registered users as inactive."""
 
-        self.client.post(
-            "/api/register/",
-            data,
-            format="json",
-        )
-
-        user = User.objects.get(email="user@example.com")
+        self.client.post("/api/register/", self.data, format="json")
+        user = User.objects.get(email=self.data["email"])
 
         self.assertFalse(user.is_active)
 
     def test_register_returns_user_data(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword",
-        }
+        """Return the created user's ID and email address."""
 
         response = self.client.post(
             "/api/register/",
-            data,
+            self.data,
             format="json",
         )
-
-        user = User.objects.get(email="user@example.com")
+        user = User.objects.get(email=self.data["email"])
 
         self.assertEqual(
             response.data["user"],
-            {
-                "id": user.id,
-                "email": user.email,
-            },
+            {"id": user.id, "email": user.email},
         )
 
     def test_register_returns_activation_token(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword",
-        }
+        """Return an activation token after registration."""
 
         response = self.client.post(
             "/api/register/",
-            data,
+            self.data,
             format="json",
         )
 
@@ -104,62 +83,33 @@ class RegisterHappyPathTest(APITestCase):
         self.assertTrue(response.data["token"])
 
     def test_registration_sends_activation_email(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword",
-        }
+        """Send one activation email to the registered user."""
 
-        self.client.post(
-            "/api/register/",
-            data,
-            format="json",
-        )
+        self.client.post("/api/register/", self.data, format="json")
 
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(
-            mail.outbox[0].to,
-            ["user@example.com"],
-        )
+        self.assertEqual(mail.outbox[0].to, [self.data["email"]])
 
     def test_activation_email_contains_activation_link(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword",
-        }
+        """Include the account activation URL in the email."""
 
         response = self.client.post(
             "/api/register/",
-            data,
+            self.data,
             format="json",
         )
-
-        user = User.objects.get(email="user@example.com")
+        user = User.objects.get(email=self.data["email"])
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = response.data["token"]
 
-        expected_link = f"/api/activate/{uid}/{token}/"
-
         self.assertIn(
-            expected_link,
+            f"/api/activate/{uid}/{token}/",
             mail.outbox[0].body,
         )
 
     def test_activation_email_contains_html_content(self):
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-            "confirmed_password": "securepassword",
-        }
+        """Include an HTML alternative in the activation email."""
 
-        self.client.post(
-            "/api/register/",
-            data,
-            format="json",
-        )
+        self.client.post("/api/register/", self.data, format="json")
 
-        self.assertEqual(
-            len(mail.outbox[0].alternatives),
-            1,
-        )
+        self.assertEqual(len(mail.outbox[0].alternatives), 1)

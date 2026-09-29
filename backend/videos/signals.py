@@ -12,6 +12,8 @@ from videos.tasks import process_video_task
 
 @receiver(post_save, sender=Video)
 def enqueue_video_processing(sender, instance, created, **_kwargs):  # pylint: disable=unused-argument
+    """Queue video processing after a new video is created."""
+
     if not created:
         return
 

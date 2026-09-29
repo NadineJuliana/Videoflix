@@ -16,15 +16,25 @@ from videos.models import Video
 
 
 class HLSSegmentAuthenticatedTests(TestCase):
+    """Test authenticated access to existing HLS segments."""
+
     def setUp(self):
+        """Create and authenticate a user."""
+
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
             username="test@example.com",
             email="test@example.com",
             password="testpassword123",
         )
+        refresh = RefreshToken.for_user(self.user)
+        self.client.cookies["access_token"] = str(
+            refresh.access_token
+        )
 
     def test_hls_segment_returns_existing_segment(self):
+        """Return an existing HLS segment with the correct content type."""
+
         with tempfile.TemporaryDirectory() as media_root:
             with override_settings(MEDIA_ROOT=media_root):
                 with patch("videos.signals.django_rq.get_queue"):
@@ -36,38 +46,20 @@ class HLSSegmentAuthenticatedTests(TestCase):
                     )
 
                 segment_dir = (
-                    Path(media_root)
-                    / "hls"
-                    / str(video.id)
-                    / "480p"
+                    Path(media_root) / "hls" / str(video.id) / "480p"
                 )
                 segment_dir.mkdir(parents=True)
-
                 segment_path = segment_dir / "000.ts"
                 segment_path.write_bytes(b"test-video-segment")
-
-                refresh = RefreshToken.for_user(self.user)
-                self.client.cookies["access_token"] = str(
-                    refresh.access_token
-                )
 
                 response = self.client.get(
                     f"/api/video/{video.id}/480p/000.ts/"
                 )
+                content = b"".join(response.streaming_content)
 
-                self.assertEqual(
-                    response.status_code,
-                    status.HTTP_200_OK,
-                )
-
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
                 self.assertEqual(
                     response["Content-Type"],
                     "video/MP2T",
                 )
-
-                content = b"".join(response.streaming_content)
-
-                self.assertEqual(
-                    content,
-                    b"test-video-segment",
-                )
+                self.assertEqual(content, b"test-video-segment")
