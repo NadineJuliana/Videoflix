@@ -11,46 +11,39 @@ User = get_user_model()
 
 
 class LoginHappyPathTest(APITestCase):
-    def test_login_returns_status_200(self):
-        User.objects.create_user(
+    """Test successful user login."""
+
+    def setUp(self):
+        """Create an active user and valid login credentials."""
+
+        self.user = User.objects.create_user(
             username="user@example.com",
             email="user@example.com",
             password="securepassword",
             is_active=True,
         )
-
-        data = {
-            "email": "user@example.com",
+        self.data = {
+            "email": self.user.email,
             "password": "securepassword",
         }
 
+    def test_login_returns_status_200(self):
+        """Return HTTP 200 for valid login credentials."""
+
         response = self.client.post(
             "/api/login/",
-            data,
+            self.data,
             format="json",
         )
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_login_returns_user_data(self):
-        user = User.objects.create_user(
-            username="user@example.com",
-            email="user@example.com",
-            password="securepassword",
-            is_active=True,
-        )
-
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-        }
+        """Return the authenticated user's data."""
 
         response = self.client.post(
             "/api/login/",
-            data,
+            self.data,
             format="json",
         )
 
@@ -59,37 +52,22 @@ class LoginHappyPathTest(APITestCase):
             {
                 "detail": "Login successful",
                 "user": {
-                    "id": user.id,
-                    "username": "user@example.com",
+                    "id": self.user.id,
+                    "username": self.user.username,
                 },
             },
         )
 
     def test_login_sets_http_only_token_cookies(self):
-        User.objects.create_user(
-            username="user@example.com",
-            email="user@example.com",
-            password="securepassword",
-            is_active=True,
-        )
-
-        data = {
-            "email": "user@example.com",
-            "password": "securepassword",
-        }
+        """Store access and refresh tokens in HTTP-only cookies."""
 
         response = self.client.post(
             "/api/login/",
-            data,
+            self.data,
             format="json",
         )
 
         self.assertIn("access_token", response.cookies)
         self.assertIn("refresh_token", response.cookies)
-
-        self.assertTrue(
-            response.cookies["access_token"]["httponly"]
-        )
-        self.assertTrue(
-            response.cookies["refresh_token"]["httponly"]
-        )
+        self.assertTrue(response.cookies["access_token"]["httponly"])
+        self.assertTrue(response.cookies["refresh_token"]["httponly"])

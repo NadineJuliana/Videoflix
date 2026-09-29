@@ -14,59 +14,40 @@ User = get_user_model()
 
 
 class ActivationHappyPathTest(APITestCase):
-    def test_activate_returns_status_200(self):
-        user = User.objects.create_user(
+    """Test successful user account activation."""
+
+    def setUp(self):
+        """Create an inactive user and valid activation credentials."""
+
+        self.user = User.objects.create_user(
             username="user@example.com",
             email="user@example.com",
             password="securepassword",
             is_active=False,
         )
+        self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        self.token = default_token_generator.make_token(self.user)
+        self.url = f"/api/activate/{self.uid}/{self.token}/"
 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
+    def test_activate_returns_status_200(self):
+        """Return HTTP 200 for a valid activation request."""
 
-        response = self.client.get(
-            f"/api/activate/{uid}/{token}/"
-        )
+        response = self.client.get(self.url)
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_activate_sets_user_active(self):
-        user = User.objects.create_user(
-            username="user@example.com",
-            email="user@example.com",
-            password="securepassword",
-            is_active=False,
-        )
+        """Activate the user after a valid activation request."""
 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
+        self.client.get(self.url)
+        self.user.refresh_from_db()
 
-        self.client.get(
-            f"/api/activate/{uid}/{token}/"
-        )
-
-        user.refresh_from_db()
-
-        self.assertTrue(user.is_active)
+        self.assertTrue(self.user.is_active)
 
     def test_activate_returns_success_message(self):
-        user = User.objects.create_user(
-            username="user@example.com",
-            email="user@example.com",
-            password="securepassword",
-            is_active=False,
-        )
+        """Return the expected message after successful activation."""
 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-
-        response = self.client.get(
-            f"/api/activate/{uid}/{token}/"
-        )
+        response = self.client.get(self.url)
 
         self.assertEqual(
             response.data,

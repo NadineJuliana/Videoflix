@@ -14,46 +14,44 @@ User = get_user_model()
 
 
 class ActivationUnhappyPathTest(APITestCase):
-    def test_activate_fails_with_invalid_token(self):
-        user = User.objects.create_user(
+    """Test failed user account activation attempts."""
+
+    def setUp(self):
+        """Create an inactive user with valid activation credentials."""
+
+        self.user = User.objects.create_user(
             username="user@example.com",
             email="user@example.com",
             password="securepassword",
             is_active=False,
         )
+        self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        self.token = default_token_generator.make_token(self.user)
 
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
+    def test_activate_fails_with_invalid_token(self):
+        """Reject account activation with an invalid token."""
 
         response = self.client.get(
-            f"/api/activate/{uid}/invalid-token/"
+            f"/api/activate/{self.uid}/invalid-token/"
         )
-
-        user.refresh_from_db()
+        self.user.refresh_from_db()
 
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST,
         )
-        self.assertFalse(user.is_active)
+        self.assertFalse(self.user.is_active)
 
     def test_activate_fails_with_invalid_uid(self):
-        user = User.objects.create_user(
-            username="user@example.com",
-            email="user@example.com",
-            password="securepassword",
-            is_active=False,
-        )
-
-        token = default_token_generator.make_token(user)
+        """Reject account activation with an invalid UID."""
 
         response = self.client.get(
-            f"/api/activate/invalid-uid/{token}/"
+            f"/api/activate/invalid-uid/{self.token}/"
         )
-
-        user.refresh_from_db()
+        self.user.refresh_from_db()
 
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST,
         )
-        self.assertFalse(user.is_active)
+        self.assertFalse(self.user.is_active)

@@ -2,8 +2,7 @@
 Serializers for authentication API endpoints.
 """
 
-from django.contrib.auth import get_user_model
-from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 
 
@@ -11,11 +10,15 @@ User = get_user_model()
 
 
 class RegistrationSerializer(serializers.Serializer):  # pylint: disable=abstract-method
+    """Validate registration data and create inactive users."""
+
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     confirmed_password = serializers.CharField(write_only=True)
 
     def validate_email(self, value):
+        """Ensure the email address is not already registered."""
+
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError(
                 "Unable to register with this email."
@@ -24,6 +27,8 @@ class RegistrationSerializer(serializers.Serializer):  # pylint: disable=abstrac
         return value
 
     def validate(self, attrs):
+        """Ensure password and confirmation match."""
+
         if attrs["password"] != attrs["confirmed_password"]:
             raise serializers.ValidationError(
                 {"password": "Passwords do not match."}
@@ -32,6 +37,8 @@ class RegistrationSerializer(serializers.Serializer):  # pylint: disable=abstrac
         return attrs
 
     def create(self, validated_data):
+        """Create a new inactive user."""
+
         email = validated_data["email"]
         password = validated_data["password"]
 
@@ -44,10 +51,14 @@ class RegistrationSerializer(serializers.Serializer):  # pylint: disable=abstrac
 
 
 class LoginSerializer(serializers.Serializer):  # pylint: disable=abstract-method
+    """Validate user credentials for login."""
+
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        """Authenticate the user with the provided credentials."""
+
         user = authenticate(
             username=attrs["email"],
             password=attrs["password"],
@@ -63,14 +74,20 @@ class LoginSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
 
 
 class PasswordResetSerializer(serializers.Serializer):  # pylint: disable=abstract-method
+    """Validate password reset requests."""
+
     email = serializers.EmailField()
 
 
 class PasswordConfirmSerializer(serializers.Serializer):  # pylint: disable=abstract-method
+    """Validate new password data."""
+
     new_password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        """Ensure the new password and confirmation match."""
+
         if attrs["new_password"] != attrs["confirm_password"]:
             raise serializers.ValidationError(
                 {"new_password": "Passwords do not match."}

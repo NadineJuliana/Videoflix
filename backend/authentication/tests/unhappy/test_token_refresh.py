@@ -7,7 +7,11 @@ from rest_framework.test import APITestCase
 
 
 class TokenRefreshUnhappyPathTest(APITestCase):
+    """Test failed access token refresh attempts."""
+
     def test_token_refresh_without_refresh_token_returns_status_400(self):
+        """Return HTTP 400 when the refresh token is missing."""
+
         response = self.client.post(
             "/api/token/refresh/",
             format="json",
@@ -19,6 +23,8 @@ class TokenRefreshUnhappyPathTest(APITestCase):
         )
 
     def test_token_refresh_with_invalid_refresh_token_returns_status_401(self):
+        """Return HTTP 401 when the refresh token is invalid."""
+
         self.client.cookies["refresh_token"] = "invalid-refresh-token"
 
         response = self.client.post(

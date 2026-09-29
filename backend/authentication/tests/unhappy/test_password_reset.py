@@ -8,7 +8,11 @@ from rest_framework.test import APITestCase
 
 
 class PasswordResetUnhappyPathTest(APITestCase):
+    """Test failed and unknown-account password reset requests."""
+
     def test_password_reset_with_unknown_email_sends_no_email(self):
+        """Return HTTP 200 without sending mail for an unknown email."""
+
         response = self.client.post(
             "/api/password_reset/",
             {
@@ -27,6 +31,8 @@ class PasswordResetUnhappyPathTest(APITestCase):
         )
 
     def test_password_reset_without_email_returns_status_400(self):
+        """Return HTTP 400 when the email is missing."""
+
         response = self.client.post(
             "/api/password_reset/",
             {},
