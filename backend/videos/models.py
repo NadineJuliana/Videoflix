@@ -6,6 +6,8 @@ from django.db import models
 
 
 class Video(models.Model):
+    """Store video metadata and associated media files."""
+
     title = models.CharField(max_length=255)
     description = models.TextField()
     video_file = models.FileField(upload_to="videos/")
@@ -18,4 +20,6 @@ class Video(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
+        """Return the video title as its string representation."""
+
         return str(self.title)

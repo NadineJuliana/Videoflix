@@ -15,11 +15,17 @@ from videos.models import Video
 
 
 class HLSSegmentUnauthenticatedTests(TestCase):
+    """Test unauthenticated access to HLS segments."""
+
     def setUp(self):
+        """Create an unauthenticated API client."""
+
         self.client = APIClient()
         self.url = "/api/video/1/480p/000.ts/"
 
     def test_hls_segment_requires_authentication(self):
+        """Return HTTP 401 without authentication."""
+
         response = self.client.get(self.url)
 
         self.assertEqual(
@@ -29,20 +35,25 @@ class HLSSegmentUnauthenticatedTests(TestCase):
 
 
 class HLSSegmentNotFoundTests(TestCase):
+    """Test missing HLS segments and videos."""
+
     def setUp(self):
+        """Create and authenticate a user."""
+
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(
+        user = get_user_model().objects.create_user(
             username="test@example.com",
             email="test@example.com",
             password="testpassword123",
         )
-
-        refresh = RefreshToken.for_user(self.user)
+        refresh = RefreshToken.for_user(user)
         self.client.cookies["access_token"] = str(
             refresh.access_token
         )
 
     def test_hls_segment_returns_404_for_missing_video(self):
+        """Return HTTP 404 when the requested video does not exist."""
+
         response = self.client.get(
             "/api/video/999/480p/000.ts/"
         )
@@ -53,6 +64,8 @@ class HLSSegmentNotFoundTests(TestCase):
         )
 
     def test_hls_segment_returns_404_for_missing_segment(self):
+        """Return HTTP 404 when the segment file does not exist."""
+
         with tempfile.TemporaryDirectory() as media_root:
             with override_settings(MEDIA_ROOT=media_root):
                 with patch("videos.signals.django_rq.get_queue"):

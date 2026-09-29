@@ -12,7 +12,11 @@ from videos.models import Video
 
 
 class VideoListAuthenticatedTests(TestCase):
+    """Test authenticated access to the video list."""
+
     def setUp(self):
+        """Create and authenticate a user."""
+
         self.client = APIClient()
         self.url = "/api/video/"
         self.user = get_user_model().objects.create_user(
@@ -20,19 +24,21 @@ class VideoListAuthenticatedTests(TestCase):
             email="test@example.com",
             password="testpassword123",
         )
+        refresh = RefreshToken.for_user(self.user)
+        self.client.cookies["access_token"] = str(
+            refresh.access_token
+        )
 
     def test_authenticated_user_can_access_video_list(self):
-        refresh = RefreshToken.for_user(self.user)
-        self.client.cookies["access_token"] = str(refresh.access_token)
+        """Return HTTP 200 for an authenticated user."""
 
         response = self.client.get(self.url)
 
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_video_list_returns_video_data(self):
+        """Return the documented video metadata."""
+
         video = Video.objects.create(  # pylint: disable=no-member
             title="Test Movie",
             description="Test Description",
@@ -41,24 +47,23 @@ class VideoListAuthenticatedTests(TestCase):
             category="Drama",
         )
 
-        refresh = RefreshToken.for_user(self.user)
-        self.client.cookies["access_token"] = str(refresh.access_token)
-
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["id"], video.id)
-        self.assertEqual(response.data[0]["title"], "Test Movie")
+        self.assertEqual(response.data[0]["title"], video.title)
         self.assertEqual(
             response.data[0]["description"],
-            "Test Description",
+            video.description,
         )
-        self.assertEqual(response.data[0]["category"], "Drama")
+        self.assertEqual(response.data[0]["category"], video.category)
         self.assertIn("created_at", response.data[0])
         self.assertIn("thumbnail_url", response.data[0])
 
     def test_video_list_is_ordered_by_created_at_desc(self):
+        """Return newer videos before older videos."""
+
         older_video = Video.objects.create(  # pylint: disable=no-member
             title="Older Movie",
             description="Older Description",
@@ -71,9 +76,6 @@ class VideoListAuthenticatedTests(TestCase):
             video_file="videos/newer.mp4",
             category="Action",
         )
-
-        refresh = RefreshToken.for_user(self.user)
-        self.client.cookies["access_token"] = str(refresh.access_token)
 
         response = self.client.get(self.url)
 
