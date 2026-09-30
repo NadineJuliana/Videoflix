@@ -9,10 +9,18 @@
         Videoflix
       {% endblock %}
     </title>
-    {% comment %} <link rel="stylesheet" href="{% static 'authentication/style/email.css' %}" /> {% endcomment %}
   </head>
-  <body>
-    <main>
+
+  <body style="
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #2d2d2d;
+      background-color: #ffffff;
+    ">
+    <main style="padding: 32px;">
       {% block content %}
 
       {% endblock %}
