@@ -29,6 +29,8 @@ User = get_user_model()
 class RegisterView(APIView):
     """Register new users and send account activation emails."""
 
+    authentication_classes = []
+
     def post(self, request):
         """Create an inactive user and send an activation email."""
 
@@ -52,6 +54,8 @@ class RegisterView(APIView):
 
 class ActivateView(APIView):
     """Activate user accounts through activation links."""
+
+    authentication_classes = []
 
     def get(self, _request, uidb64, token):
         """Activate the user when the activation token is valid."""
@@ -80,6 +84,8 @@ class ActivateView(APIView):
 
 class LoginView(APIView):
     """Authenticate users and issue JWT cookies."""
+
+    authentication_classes = []
 
     def post(self, request):
         """Authenticate the user and return JWT cookies."""
@@ -233,6 +239,8 @@ class TokenRefreshView(APIView):
 class PasswordResetView(APIView):
     """Handle password reset requests."""
 
+    authentication_classes = []
+
     def post(self, request):
         """Send a password reset email when the account exists."""
 
@@ -256,6 +264,8 @@ class PasswordResetView(APIView):
 
 class PasswordConfirmView(APIView):
     """Confirm password resets using UID and token."""
+
+    authentication_classes = []
 
     def post(self, request, uidb64, token):
         """Set a new password when the reset token is valid."""

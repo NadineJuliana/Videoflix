@@ -10,6 +10,27 @@ Uploaded videos are processed asynchronously using Redis, Django RQ and FFmpeg a
 
 ---
 
+## Table of Contents
+
+- [Description](#description)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Installation](#installation)
+  - [Clone the Repository](#clone-the-repository)
+  - [Environment Variables](#environment-variables)
+- [Run with Docker](#run-with-docker)
+- [Video Processing](#video-processing)
+- [Authentication](#authentication)
+- [API Endpoints](#api-endpoints)
+  - [Authentication Endpoints](#authentication-1)
+  - [Video Endpoints](#videos)
+- [Frontend Integration](#frontend-integration)
+- [Project Structure](#project-structure)
+- [Testing](#testing)
+- [Development Notes](#development-notes)
+
+---
+
 ## Features
 
 - User registration
@@ -49,20 +70,20 @@ Uploaded videos are processed asynchronously using Redis, Django RQ and FFmpeg a
 
 ### Clone the repository
 
+The current development version of Videoflix is available on the `develop` branch.
+
+Clone the repository directly from `develop`:
+
 ```bash
-git clone https://github.com/NadineJuliana/Videoflix.git
+git clone --branch develop https://github.com/NadineJuliana/Videoflix.git
 cd Videoflix/backend
-```
-
-To use the current development version:
-
-```bash
-git checkout develop
 ```
 
 ### Environment Variables
 
-Create a `.env` file based on the provided `.env.template`.
+The `.env.template` file contains all required environment variables for the project.
+
+Create your local `.env` file by copying the template:
 
 **Windows PowerShell**
 
@@ -76,7 +97,9 @@ Copy-Item .env.template .env
 cp .env.template .env
 ```
 
-The `.env.template` contains all required environment variables for Django, PostgreSQL, Redis and the local development setup.
+After creating the `.env` file, replace the placeholder values with valid values for your local environment before starting the application.
+
+The template contains the required configuration for Django, PostgreSQL, Redis and email settings.
 
 ---
 
