@@ -227,3 +227,9 @@ REST_FRAMEWORK = {
         "authentication.authentication.CookieJWTAuthentication",
     ],
 }
+
+
+FRONTEND_URL = get_env(
+    "FRONTEND_URL",
+    "http://127.0.0.1:5500",
+)

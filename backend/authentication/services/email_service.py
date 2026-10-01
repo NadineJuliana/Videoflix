@@ -3,6 +3,7 @@ Email services for authentication workflows.
 """
 
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
@@ -14,7 +15,7 @@ def get_activation_link(user, token):
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     return (
-        "http://127.0.0.1:5500/pages/auth/activate.html"
+        f"{settings.FRONTEND_URL}/pages/auth/activate.html"
         f"?uid={uid}&token={token}"
     )
 
@@ -28,6 +29,7 @@ def send_activation_email(user, token):
         {
             "activation_link": activation_link,
             "username": user.username,
+            "frontend_url": settings.FRONTEND_URL,
         },
     )
 
@@ -47,7 +49,7 @@ def get_password_reset_link(user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     return (
-        "http://127.0.0.1:5500/pages/auth/confirm_password.html"
+        f"{settings.FRONTEND_URL}/pages/auth/confirm_password.html"
         f"?uid={uid}&token={token}"
     )
 

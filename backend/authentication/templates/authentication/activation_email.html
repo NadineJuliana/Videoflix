@@ -1,21 +1,13 @@
 {% extends 'authentication/base.html' %}
-{% load static %}
 
 {% block title %}
   Activate your Account
 {% endblock %}
 
 {% block content %}
-  <img class="logo" src="{% static 'authentication/images/Logo.svg' %}" alt="Videoflix Logo" style="
-  display: block;
-  width: 280px;
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto 24px auto;
-" />
   <p>Dear {{ username }},</p>
   <p>
-    Thank you for registering with <a class="homepage" href="" style="
+    Thank you for registering with <a class="homepage" href="{{ frontend_url }}" style="
     color: #1c2be8;
     text-decoration: none;
   ">Videoflix</a>.
