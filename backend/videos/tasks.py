@@ -8,10 +8,11 @@ from django.conf import settings
 
 from videos.models import Video
 from videos.services.video_processing import process_video
+from videos.utils import delete_video_file
 
 
 def process_video_task(video_id):
-    """Process an uploaded video and store its generated thumbnail."""
+    """Process an uploaded video and remove the source file afterwards."""
 
     video = Video.objects.get(pk=video_id)  # pylint: disable=no-member
     source_path = video.video_file.path
@@ -24,3 +25,4 @@ def process_video_task(video_id):
 
     video.thumbnail.name = f"thumbnails/{video.id}.jpg"
     video.save(update_fields=["thumbnail"])
+    delete_video_file(video.video_file)
